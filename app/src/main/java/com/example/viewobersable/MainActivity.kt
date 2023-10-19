@@ -62,7 +62,6 @@ fun SaveVariable() {
 //    }
     SaveVariableItem(viewModel.currentIndex, viewModel.uiState, pagerState) {
         viewModel.changeUIi()
-        viewModel.setLastCurrentPage = true
     }
 }
 
@@ -72,8 +71,10 @@ class VariableViewModel : ViewModel() {
     var currentIndex by mutableStateOf(0)
     fun changeUIi() {
         uiState = if (uiState == ScreenName.FIRST) {
+            setLastCurrentPage = true
             ScreenName.SECOND
         } else {
+            setLastCurrentPage = false
             ScreenName.FIRST
         }
     }
