@@ -1,6 +1,7 @@
 package com.example.viewobersable
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -30,16 +31,17 @@ import androidx.lifecycle.ViewModel
 import com.example.viewobersable.ui.theme.ViewObersableTheme
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ViewObersableTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    SaveVariable()
+                    val pagerState = rememberPagerState()
+                    SaveVariable(pagerState, VariableViewModel())
                 }
             }
         }
@@ -48,18 +50,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
-fun SaveVariable() {
-    val viewModel = VariableViewModel()
-    val pagerState = rememberPagerState()
+fun SaveVariable(pagerState: PagerState, viewModel: VariableViewModel) {
     LaunchedEffect(key1 = pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             viewModel.currentIndex = page
         }
     }
-//    this code is causing issue
-//    LaunchedEffect(key1 = viewModel.setLastCurrentPage) {
-//        Log.e(">> LaunchedEffect", "${viewModel.currentIndex}")
-//    }
+    LaunchedEffect(key1 = viewModel.setLastCurrentPage) {
+        Log.e(">> LaunchedEffect", "${viewModel.currentIndex}")
+    }
     SaveVariableItem(viewModel.currentIndex, viewModel.uiState, pagerState) {
         viewModel.changeUIi()
     }
@@ -67,8 +66,8 @@ fun SaveVariable() {
 
 class VariableViewModel : ViewModel() {
     var uiState by mutableStateOf(ScreenName.FIRST)
-    var setLastCurrentPage by mutableStateOf(false)
     var currentIndex by mutableStateOf(0)
+    var setLastCurrentPage by mutableStateOf(false)
     fun changeUIi() {
         uiState = if (uiState == ScreenName.FIRST) {
             setLastCurrentPage = true
@@ -103,9 +102,14 @@ fun SaveVariableItem(
                 ScreenSecondView(currentIndex, "SECOND")
             }
         }
-        Button(onClick = { changeUiState() }) {
-            Text(text = "Add")
-        }
+        ChangeUiStateButton(changeUiState)
+    }
+}
+
+@Composable
+fun ChangeUiStateButton(changeUiState: () -> Unit) {
+    Button(onClick = { changeUiState() }) {
+        Text(text = "Add")
     }
 }
 
